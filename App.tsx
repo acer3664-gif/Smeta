@@ -1,14 +1,14 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstimateItem, RenovationProject } from './types.ts';
-import { getAiSuggestions } from './services/geminiService.ts';
-import { exportToExcel } from './services/exportService.ts';
-import { ESTIMATE_TEMPLATES } from './data/templates.ts';
-import EstimateTable from './components/EstimateTable.tsx';
-import SummaryCards from './components/SummaryCards.tsx';
-import Visualizer from './components/Visualizer.tsx';
-import Auth from './components/Auth.tsx';
-import { supabase } from './lib/supabase.ts';
+import { getAiSuggestions } from './geminiService.ts';
+import { exportToExcel } from './exportService.ts';
+import { ESTIMATE_TEMPLATES } from './templates.ts';
+import EstimateTable from './EstimateTable.tsx';
+import SummaryCards from './SummaryCards.tsx';
+import Visualizer from './Visualizer.tsx';
+import Auth from './Auth.tsx';
+import { supabase } from './supabase.ts';
 import { 
   Sparkles, 
   Download, 
