@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase.ts';
+import { supabase } from '../supabase.ts';
 import { Mail, Lock, Loader2, LayoutPanelTop, ArrowRight } from 'lucide-react';
 
 const Auth: React.FC = () => {
