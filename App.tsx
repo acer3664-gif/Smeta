@@ -28,7 +28,9 @@ import {
   LogOut,
   User,
   AlertTriangle,
-  Hammer
+  Hammer,
+  Menu,
+  X
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -40,11 +42,24 @@ const App: React.FC = () => {
 
   const [aiQuery, setAiQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
   
   const [projectToDelete, setProjectToDelete] = useState<{id: string, name: string} | null>(null);
+
+  // Следим за размером экрана для адаптивности сайдбара
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -160,6 +175,7 @@ const App: React.FC = () => {
     setCurrentProjectId(newId);
     syncToCloud(newProject);
     notify(`Проект создан`);
+    if (window.innerWidth <= 1024) setIsSidebarOpen(false);
   }, [projects.length]);
 
   const loadProTemplate = useCallback(() => {
@@ -183,6 +199,7 @@ const App: React.FC = () => {
     setCurrentProjectId(newId);
     syncToCloud(newProject);
     notify(`Шаблон загружен`);
+    if (window.innerWidth <= 1024) setIsSidebarOpen(false);
   }, []);
 
   const handleAiSuggest = async () => {
@@ -313,70 +330,93 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Мобильный оверлей */}
       {isSidebarOpen && (
-        <aside className="w-[20rem] bg-slate-900 text-white flex flex-col flex-shrink-0 z-30 shadow-2xl no-print border-r border-white/5">
-          <div className="p-6 flex items-center gap-3 border-b border-white/10">
+        <div 
+          onClick={() => setIsSidebarOpen(false)} 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 lg:hidden no-print"
+        />
+      )}
+
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 lg:w-80 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-2xl no-print border-r border-white/5 transition-transform duration-300 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="p-6 flex items-center justify-between border-b border-white/10">
+          <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2 rounded-lg"><LayoutPanelTop size={20} /></div>
             <span className="font-black text-xl tracking-tight uppercase italic">Remont<span className="text-blue-500">AI</span></span>
           </div>
-          <div className="p-4 space-y-3">
-            <button onClick={createNewProject} className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/20">
-              <PlusCircle size={20} /> НОВАЯ СМЕТА
-            </button>
-            <button 
-              onClick={loadProTemplate} 
-              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-bold text-sm border border-white/10"
+          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 hover:text-blue-400 transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="p-4 space-y-3">
+          <button onClick={createNewProject} className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/20 text-sm">
+            <PlusCircle size={18} /> НОВАЯ СМЕТА
+          </button>
+          <button 
+            onClick={loadProTemplate} 
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-bold text-[11px] border border-white/10 uppercase tracking-tight"
+          >
+            <Hammer size={16} className="text-blue-400" /> ПРОФ. ШАБЛОН
+          </button>
+        </div>
+        <div className="px-6 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Проекты</div>
+        <div className="flex-1 overflow-y-auto px-2 space-y-1 py-1">
+          {projects.map(p => (
+            <div 
+              key={p.id} 
+              onClick={() => {
+                setCurrentProjectId(p.id);
+                if (window.innerWidth <= 1024) setIsSidebarOpen(false);
+              }} 
+              className={`group flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all ${currentProject?.id === p.id ? 'bg-white/10 shadow-inner' : 'hover:bg-white/5 text-slate-400'}`}
             >
-              <Hammer size={18} className="text-blue-400" /> ЗАГРУЗИТЬ ПРОФ. ШАБЛОН
-            </button>
-          </div>
-          <div className="px-6 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Проекты</div>
-          <div className="flex-1 overflow-y-auto px-2 space-y-1 py-1">
-            {projects.map(p => (
-              <div key={p.id} onClick={() => setCurrentProjectId(p.id)} className={`group flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all ${currentProject?.id === p.id ? 'bg-white/10 shadow-inner' : 'hover:bg-white/5 text-slate-400'}`}>
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <FolderOpen size={16} className={currentProject?.id === p.id ? 'text-blue-400' : 'text-slate-600'} />
-                  <span className="truncate font-medium text-sm">{p.name}</span>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); setProjectToDelete({id: p.id, name: p.name}); }} className="opacity-0 group-hover:opacity-100 p-1.5 hover:text-red-400 transition-all"><Trash2 size={14} /></button>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <FolderOpen size={16} className={currentProject?.id === p.id ? 'text-blue-400' : 'text-slate-600'} />
+                <span className="truncate font-medium text-sm">{p.name}</span>
               </div>
-            ))}
-          </div>
-          <div className="mt-auto p-4 border-t border-white/5 bg-black/10">
-             <div className="flex items-center gap-3 mb-4 overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><User size={16} /></div>
-                <span className="text-xs font-bold text-slate-300 truncate">{session?.user?.email || 'Пользователь'}</span>
-             </div>
-             <button onClick={handleLogout} className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-red-500/10 hover:text-red-400 transition-all font-bold text-xs uppercase text-slate-400 flex items-center justify-center gap-2">
-                <LogOut size={14} /> Выйти
-             </button>
-          </div>
-        </aside>
-      )}
+              <button onClick={(e) => { e.stopPropagation(); setProjectToDelete({id: p.id, name: p.name}); }} className="opacity-0 group-hover:opacity-100 p-1.5 hover:text-red-400 transition-all"><Trash2 size={14} /></button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-auto p-4 border-t border-white/5 bg-black/10">
+           <div className="flex items-center gap-3 mb-4 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><User size={16} /></div>
+              <span className="text-xs font-bold text-slate-300 truncate">{session?.user?.email || 'Пользователь'}</span>
+           </div>
+           <button onClick={handleLogout} className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-red-500/10 hover:text-red-400 transition-all font-bold text-xs uppercase text-slate-400 flex items-center justify-center gap-2">
+              <LogOut size={14} /> Выйти
+           </button>
+        </div>
+      </aside>
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 no-print">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><LayoutPanelTop size={18} /></button>
-            {currentProject && <div className="flex items-center gap-2">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 z-20 no-print">
+          <div className="flex items-center gap-3 lg:gap-4 overflow-hidden">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+              className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+            >
+              <Menu size={18} />
+            </button>
+            {currentProject && <div className="flex items-center gap-2 overflow-hidden max-w-md">
               <input type="text" value={currentProject.name} onChange={(e) => {
                 const updated = {...currentProject, name: e.target.value, lastModified: Date.now()};
                 setProjects(prev => prev.map(p => p.id === currentProject.id ? updated : p));
                 syncToCloud(updated);
-              }} className="bg-transparent border-none focus:ring-0 font-black text-slate-800 text-lg p-0" />
-              <Edit3 size={14} className="text-slate-300" />
+              }} className="bg-transparent border-none focus:ring-0 font-black text-slate-800 text-sm lg:text-lg p-0 truncate" />
+              <Edit3 size={14} className="text-slate-300 flex-shrink-0" />
             </div>}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3">
             {currentProject && (
               <div className="relative">
-                <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-xl flex items-center gap-2 hover:bg-slate-800 transition-all">
-                  <Download size={18} /> ЭКСПОРТ <ChevronDown size={14} className={isExportMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="bg-slate-900 text-white px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold text-[10px] lg:text-sm shadow-xl flex items-center gap-2 hover:bg-slate-800 transition-all">
+                  <Download size={16} className="hidden sm:block" /> ЭКСПОРТ <ChevronDown size={14} className={isExportMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
                 </button>
                 {isExportMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden py-1 animate-in slide-in-from-top-2">
-                    <button onClick={() => { exportToExcel(currentProject); setIsExportMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-sm"><FileSpreadsheet size={18} className="text-green-600" /> Сохранить в Excel</button>
-                    <button onClick={() => { setIsExportMenuOpen(false); window.print(); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-sm"><FileText size={18} className="text-blue-600" /> Печать / PDF</button>
+                  <div className="absolute top-full right-0 mt-2 w-48 lg:w-56 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden py-1 animate-in slide-in-from-top-2">
+                    <button onClick={() => { exportToExcel(currentProject); setIsExportMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-xs lg:text-sm"><FileSpreadsheet size={18} className="text-green-600" /> Excel</button>
+                    <button onClick={() => { setIsExportMenuOpen(false); window.print(); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-xs lg:text-sm"><FileText size={18} className="text-blue-600" /> Печать / PDF</button>
                   </div>
                 )}
               </div>
@@ -384,19 +424,19 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-10 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-10 scrollbar-thin scrollbar-thumb-slate-200">
           <div className="max-w-6xl mx-auto">
-            <div className="mb-10 no-print">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[2.5rem] p-6 lg:p-8 text-white shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
+            <div className="mb-6 lg:mb-10 no-print">
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[2rem] lg:rounded-[2.5rem] p-5 lg:p-8 text-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700 hidden lg:block">
                   <Hammer size={120} />
                 </div>
                 <div className="relative z-10 flex flex-col md:flex-row items-end gap-4">
                   <div className="flex-1 w-full">
                     <div className="flex items-center gap-2 mb-2 text-blue-100 text-[10px] font-black uppercase tracking-widest"><Sparkles size={14} /> Умная генерация сметы</div>
-                    <input type="text" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAiSuggest()} placeholder="Например: 'Ремонт кухни 10м2 в стиле минимализм'..." className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm transition-all" />
+                    <input type="text" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAiSuggest()} placeholder="Например: 'Ремонт кухни 10м2'..." className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-3 lg:py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm transition-all text-sm lg:text-base" />
                   </div>
-                  <button onClick={handleAiSuggest} disabled={isLoading || !aiQuery.trim()} className="w-full md:w-auto bg-white text-blue-700 font-black px-8 py-4 rounded-2xl hover:bg-blue-50 transition-all text-sm flex items-center justify-center gap-2 shadow-lg shadow-black/10">
+                  <button onClick={handleAiSuggest} disabled={isLoading || !aiQuery.trim()} className="w-full md:w-auto bg-white text-blue-700 font-black px-6 lg:px-8 py-3 lg:py-4 rounded-2xl hover:bg-blue-50 transition-all text-sm flex items-center justify-center gap-2 shadow-lg shadow-black/10">
                     {isLoading ? <Loader2 size={18} className="animate-spin" /> : <><Plus size={18} /> СОЗДАТЬ</>}
                   </button>
                 </div>
@@ -404,10 +444,10 @@ const App: React.FC = () => {
             </div>
 
             {currentProject ? (
-              <div className="space-y-10">
+              <div className="space-y-6 lg:space-y-10">
                 <div className="no-print"><SummaryCards items={currentProject.items} /></div>
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-                  <div className="xl:col-span-8">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-10">
+                  <div className="xl:col-span-8 overflow-hidden">
                     <EstimateTable 
                       items={currentProject.items} 
                       onUpdate={handleUpdateItem} 
@@ -423,16 +463,16 @@ const App: React.FC = () => {
                       }}
                     />
                   </div>
-                  <aside className="xl:col-span-4 space-y-8 no-print">
+                  <aside className="xl:col-span-4 space-y-6 lg:space-y-8 no-print">
                     <Visualizer items={currentProject.items} />
-                    <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                    <div className="bg-slate-900 rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 text-white shadow-2xl relative overflow-hidden">
                       <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600/20 blur-3xl"></div>
                       <div className="relative z-10">
                         <div className="flex justify-between items-center mb-6 text-[10px] font-black uppercase text-blue-400 tracking-widest">Прогресс заполнения <span>{progress}%</span></div>
                         <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-6">
                           <div className="h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-1000" style={{width: `${progress}%`}}></div>
                         </div>
-                        <div className="text-4xl font-black">{totalAmount.toLocaleString()} ₽</div>
+                        <div className="text-3xl lg:text-4xl font-black">{totalAmount.toLocaleString()} ₽</div>
                         <p className="text-[10px] text-slate-500 font-bold uppercase mt-2">Итоговая сумма по работам</p>
                       </div>
                     </div>
@@ -440,10 +480,10 @@ const App: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center text-center p-20 opacity-40">
+              <div className="flex flex-col items-center justify-center text-center p-10 lg:p-20 opacity-40">
                 <LayoutPanelTop size={64} className="text-slate-300 mb-4" />
-                <h3 className="text-xl font-black text-slate-400 uppercase tracking-tighter italic">Выберите смету или создайте новую</h3>
-                <p className="text-slate-400 text-sm mt-2 max-w-xs">Используйте проф. шаблон для быстрой структуры или ИИ для автозаполнения</p>
+                <h3 className="text-lg lg:text-xl font-black text-slate-400 uppercase tracking-tighter italic">Выберите смету или создайте новую</h3>
+                <p className="text-slate-400 text-xs lg:text-sm mt-2 max-w-xs">Используйте проф. шаблон для быстрой структуры или ИИ для автозаполнения</p>
               </div>
             )}
           </div>
