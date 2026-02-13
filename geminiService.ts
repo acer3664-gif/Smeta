@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { SuggestionResponse } from "../types.ts";
 
 export const getAiSuggestions = async (prompt: string): Promise<SuggestionResponse> => {
-  // Инициализация внутри функции гарантирует использование актуального ключа из окружения
+  // Инициализация внутри функции гарантирует использование актуального ключа из окружения или диалога выбора
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const systemInstruction = `Ты — эксперт по строительным сметам. 
@@ -17,12 +17,13 @@ export const getAiSuggestions = async (prompt: string): Promise<SuggestionRespon
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-3-flash-preview",
       contents: `Запрос пользователя: "${prompt}"`,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
-        thinkingConfig: { thinkingBudget: 4000 }, // Даем модели время на обдумывание структуры
+        // Для модели Flash отключаем thinkingBudget для максимальной скорости и стабильности на простых ключах
+        thinkingConfig: { thinkingBudget: 0 },
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -49,12 +50,13 @@ export const getAiSuggestions = async (prompt: string): Promise<SuggestionRespon
 
     const text = response.text;
     if (!text) {
-      throw new Error("Модель вернула пустой ответ");
+      throw new Error("Модель вернула пустой ответ. Попробуйте уточнить запрос.");
     }
 
     return JSON.parse(text.trim());
-  } catch (error) {
-    console.error("Gemini API Error:", error);
+  } catch (error: any) {
+    console.error("Gemini API Error details:", error);
+    // Пробрасываем ошибку дальше для обработки в UI
     throw error;
   }
 };

@@ -1,14 +1,14 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstimateItem, RenovationProject } from './types.ts';
-import { getAiSuggestions } from './geminiService.ts';
-import { exportToExcel } from './exportService.ts';
-import { ESTIMATE_TEMPLATES } from './templates.ts';
-import EstimateTable from './EstimateTable.tsx';
-import SummaryCards from './SummaryCards.tsx';
-import Visualizer from './Visualizer.tsx';
-import Auth from './Auth.tsx';
-import { supabase } from './supabase.ts';
+import { getAiSuggestions } from './services/geminiService.ts';
+import { exportToExcel } from './services/exportService.ts';
+import { ESTIMATE_TEMPLATES } from './data/templates.ts';
+import EstimateTable from './components/EstimateTable.tsx';
+import SummaryCards from './components/SummaryCards.tsx';
+import Visualizer from './components/Visualizer.tsx';
+import Auth from './components/Auth.tsx';
+import { supabase } from './lib/supabase.ts';
 import { 
   Sparkles, 
   Download, 
@@ -30,7 +30,8 @@ import {
   AlertTriangle,
   Hammer,
   Menu,
-  X
+  X,
+  Key
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -45,6 +46,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   
   const [projectToDelete, setProjectToDelete] = useState<{id: string, name: string} | null>(null);
 
@@ -202,10 +204,20 @@ const App: React.FC = () => {
     if (window.innerWidth <= 1024) setIsSidebarOpen(false);
   }, []);
 
+  const handleOpenKeyDialog = async () => {
+    if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
+      await window.aistudio.openSelectKey();
+      setAiError(null);
+    } else {
+      alert("Настройка ключей доступна только в среде AI Studio");
+    }
+  };
+
   const handleAiSuggest = async () => {
     const cleanPrompt = aiQuery.trim();
     if (!cleanPrompt) return;
     setIsLoading(true);
+    setAiError(null);
     try {
       const result = await getAiSuggestions(cleanPrompt);
       const newItems: EstimateItem[] = result.items.map(item => ({
@@ -232,7 +244,12 @@ const App: React.FC = () => {
       notify("ИИ подготовил смету!");
     } catch (err: any) {
       console.error("AI Generation failed:", err);
-      alert(`Ошибка при работе с ИИ: ${err.message || "проверьте интернет-соединение или попробуйте позже"}`);
+      const errorMsg = err.message || "";
+      if (errorMsg.includes("API key not valid") || errorMsg.includes("INVALID_ARGUMENT")) {
+        setAiError("Проблема с API-ключом. Пожалуйста, выберите корректный ключ.");
+      } else {
+        setAiError(`Ошибка: ${errorMsg || "проверьте интернет или попробуйте позже"}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -441,6 +458,23 @@ const App: React.FC = () => {
                     {isLoading ? <Loader2 size={18} className="animate-spin" /> : <><Plus size={18} /> СОЗДАТЬ</>}
                   </button>
                 </div>
+                
+                {aiError && (
+                  <div className="mt-4 bg-red-500/20 border border-red-500/50 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="text-red-400 flex-shrink-0" size={20} />
+                      <p className="text-red-100 text-xs font-bold leading-tight">{aiError}</p>
+                    </div>
+                    {aiError.includes("API-ключ") && (
+                      <button 
+                        onClick={handleOpenKeyDialog}
+                        className="flex items-center gap-2 bg-white text-red-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-red-50 transition-all whitespace-nowrap shadow-lg"
+                      >
+                        <Key size={14} /> Выбрать ключ
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
