@@ -1,14 +1,14 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstimateItem, RenovationProject } from './types.ts';
-import { getAiSuggestions } from './geminiService.ts';
-import { exportToExcel } from './exportService.ts';
-import { ESTIMATE_TEMPLATES } from './templates.ts';
-import EstimateTable from './EstimateTable.tsx';
-import SummaryCards from './SummaryCards.tsx';
-import Visualizer from './Visualizer.tsx';
-import Auth from './Auth.tsx';
-import { supabase } from './supabase.ts';
+import { getAiSuggestions } from './services/geminiService.ts';
+import { exportToExcel } from './services/exportService.ts';
+import { ESTIMATE_TEMPLATES } from './data/templates.ts';
+import EstimateTable from './components/EstimateTable.tsx';
+import SummaryCards from './components/SummaryCards.tsx';
+import Visualizer from './components/Visualizer.tsx';
+import Auth from './components/Auth.tsx';
+import { supabase } from './lib/supabase.ts';
 import { 
   Sparkles, 
   Download, 
@@ -161,6 +161,16 @@ const App: React.FC = () => {
     await supabase.auth.signOut();
     setProjects([]);
     setCurrentProjectId(null);
+  };
+
+  const handlePrint = () => {
+    setIsExportMenuOpen(false);
+    const originalTitle = document.title;
+    // Устанавливаем заголовок страницы равным имени проекта для корректного имени PDF при сохранении
+    const safeName = currentProject?.name.replace(/[/\\?%*:|"<>]/g, '-') || 'Смета';
+    document.title = `${safeName}_7svn`;
+    window.print();
+    document.title = originalTitle;
   };
 
   const createNewProject = useCallback(() => {
@@ -434,8 +444,8 @@ const App: React.FC = () => {
                 </button>
                 {isExportMenuOpen && (
                   <div className="absolute top-full right-0 mt-2 w-48 lg:w-56 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden py-1 animate-in slide-in-from-top-2">
-                    <button onClick={() => { exportToExcel(currentProject); setIsExportMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-xs lg:text-sm"><FileSpreadsheet size={18} className="text-green-600" /> Excel</button>
-                    <button onClick={() => { setIsExportMenuOpen(false); window.print(); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-xs lg:text-sm"><FileText size={18} className="text-blue-600" /> Печать / PDF</button>
+                    <button onClick={() => { exportToExcel(currentProject); setIsExportMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-xs lg:text-sm"><FileSpreadsheet size={18} className="text-green-600" /> Сохранить в Excel</button>
+                    <button onClick={handlePrint} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700 font-bold text-xs lg:text-sm"><FileText size={18} className="text-blue-600" /> Сохранить как PDF</button>
                   </div>
                 )}
               </div>
