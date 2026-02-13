@@ -20,7 +20,7 @@
         @media print {
             @page {
                 size: A4;
-                margin: 15mm;
+                margin: 10mm;
             }
 
             /* Снимаем ограничения высоты и переполнения */
@@ -55,11 +55,21 @@
                 padding: 0 !important;
             }
 
-            /* Предотвращаем разрыв раздела между страницами */
+            /* Контейнер для группы итогов, который не должен разрываться */
+            .print-summary-group {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                display: block !important;
+                margin-top: 20px !important;
+                padding: 15px !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+            }
+
             .print-section-container {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-bottom: 30px !important;
+                margin-bottom: 20px !important;
                 border: 1px solid #e2e8f0 !important;
                 display: block !important;
             }
@@ -77,22 +87,22 @@
 
             th, td {
                 border: 1px solid #cbd5e1 !important;
-                padding: 8px !important;
-                font-size: 10pt !important;
+                padding: 6px !important;
+                font-size: 9pt !important;
             }
 
             /* Итоговая сумма в PDF */
             .print-total-banner {
-                margin-top: 40px;
-                padding: 20px;
-                background-color: #f1f5f9 !important;
-                border-radius: 12px;
+                margin-top: 15px;
+                padding: 15px;
+                background-color: #f8fafc !important;
+                border-radius: 10px;
                 text-align: right;
-                border: 2px solid #0f172a !important;
+                border: 1.5px solid #0f172a !important;
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
 
-            /* Убираем тени и скругления */
             .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
                 box-shadow: none !important;
             }
@@ -103,7 +113,7 @@
                 appearance: none !important;
                 -webkit-appearance: none !important;
                 color: black !important;
-                font-size: 10pt !important;
+                font-size: 9pt !important;
             }
 
             .bg-slate-50, .bg-slate-100, .bg-slate-50\/80 {

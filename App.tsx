@@ -1,14 +1,14 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstimateItem, RenovationProject } from './types.ts';
-import { getAiSuggestions } from './geminiService.ts';
-import { exportToExcel } from './exportService.ts';
-import { ESTIMATE_TEMPLATES } from './templates.ts';
-import EstimateTable from './EstimateTable.tsx';
-import SummaryCards from './SummaryCards.tsx';
-import Visualizer from './Visualizer.tsx';
-import Auth from './Auth.tsx';
-import { supabase } from './supabase.ts';
+import { getAiSuggestions } from './services/geminiService.ts';
+import { exportToExcel } from './services/exportService.ts';
+import { ESTIMATE_TEMPLATES } from './data/templates.ts';
+import EstimateTable from './components/EstimateTable.tsx';
+import SummaryCards from './components/SummaryCards.tsx';
+import Visualizer from './components/Visualizer.tsx';
+import Auth from './components/Auth.tsx';
+import { supabase } from './lib/supabase.ts';
 import { 
   Sparkles, 
   Download, 
@@ -118,7 +118,6 @@ const App: React.FC = () => {
     if (!session?.user?.id) return;
     setIsSyncing(true);
     try {
-      // Fix: Corrected property name from project.last_modified to project.lastModified to align with RenovationProject interface
       await supabase
         .from('projects')
         .upsert({
@@ -500,16 +499,16 @@ const App: React.FC = () => {
                       }}
                     />
                     
-                    {/* Блок итогов специально для печати / PDF */}
-                    <div className="print-only mt-12 border-t-2 border-slate-900 pt-10">
-                      <div className="mb-10 page-break-inside-avoid">
+                    {/* Блок итогов специально для печати / PDF - Группируем вместе */}
+                    <div className="print-only print-summary-group">
+                      <div className="mb-6">
                         <Visualizer items={currentProject.items} />
                       </div>
                       <div className="print-total-banner">
-                        <span className="text-[10pt] font-black uppercase text-slate-500 block mb-1">Итоговая стоимость всех работ по смете:</span>
+                        <span className="text-[9pt] font-black uppercase text-slate-500 block mb-1">Итоговая стоимость всех работ по смете:</span>
                         <span className="text-2xl font-black text-slate-900 tracking-tight">{totalAmount.toLocaleString()} ₽</span>
                       </div>
-                      <div className="mt-10 text-[8pt] text-slate-400 font-medium italic text-center">
+                      <div className="mt-6 text-[7pt] text-slate-400 font-medium italic text-center">
                         Смета сформирована в 7svn. Данные носят информационный характер.
                       </div>
                     </div>
