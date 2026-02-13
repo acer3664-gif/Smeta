@@ -136,7 +136,7 @@ const EstimateTable: React.FC<Props> = ({
       )}
       
       {categories.map(category => (
-        <div key={category} className="bg-white rounded-[1.5rem] shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md">
+        <div key={category} className="bg-white rounded-[1.5rem] shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md print-section-container">
           <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200 flex justify-between items-center group/cat">
             <div className="flex items-center gap-3 flex-1 mr-4">
               {editingCategory === category ? (
@@ -158,7 +158,7 @@ const EstimateTable: React.FC<Props> = ({
                     className="font-black text-slate-800 text-base cursor-pointer hover:text-blue-600 transition-colors flex items-center gap-2"
                   >
                     {category}
-                    <Edit2 size={12} className="opacity-0 group-hover/cat:opacity-100 text-slate-400" />
+                    <Edit2 size={12} className="opacity-0 group-hover/cat:opacity-100 text-slate-400 no-print" />
                   </h3>
                 </>
               )}
@@ -186,7 +186,7 @@ const EstimateTable: React.FC<Props> = ({
                   <th className="px-1 py-4 text-center w-16">Кол-во</th>
                   <th className="px-3 py-4 text-center w-24">Цена (₽)</th>
                   <th className="px-6 py-4 text-right w-32">Сумма (₽)</th>
-                  <th className="px-3 w-12"></th>
+                  <th className="px-3 w-12 no-print"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
