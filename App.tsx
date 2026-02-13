@@ -1,14 +1,14 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstimateItem, RenovationProject } from './types.ts';
-import { getAiSuggestions } from './geminiService.ts';
-import { exportToExcel } from './exportService.ts';
-import { ESTIMATE_TEMPLATES } from './templates.ts';
-import EstimateTable from './EstimateTable.tsx';
-import SummaryCards from './SummaryCards.tsx';
-import Visualizer from './Visualizer.tsx';
-import Auth from './Auth.tsx';
-import { supabase } from './supabase.ts';
+import { getAiSuggestions } from './services/geminiService.ts';
+import { exportToExcel } from './services/exportService.ts';
+import { ESTIMATE_TEMPLATES } from './data/templates.ts';
+import EstimateTable from './components/EstimateTable.tsx';
+import SummaryCards from './components/SummaryCards.tsx';
+import Visualizer from './components/Visualizer.tsx';
+import Auth from './components/Auth.tsx';
+import { supabase } from './lib/supabase.ts';
 import { 
   Sparkles, 
   Download, 
@@ -50,7 +50,6 @@ const App: React.FC = () => {
   
   const [projectToDelete, setProjectToDelete] = useState<{id: string, name: string} | null>(null);
 
-  // Следим за размером экрана для адаптивности сайдбара
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth <= 1024) {
@@ -119,6 +118,7 @@ const App: React.FC = () => {
     if (!session?.user?.id) return;
     setIsSyncing(true);
     try {
+      // Fix: Corrected property name from project.last_modified to project.lastModified to align with RenovationProject interface
       await supabase
         .from('projects')
         .upsert({
@@ -348,7 +348,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Мобильный оверлей */}
       {isSidebarOpen && (
         <div 
           onClick={() => setIsSidebarOpen(false)} 
@@ -360,7 +359,10 @@ const App: React.FC = () => {
         <div className="p-6 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2 rounded-lg"><LayoutPanelTop size={20} /></div>
-            <span className="font-black text-xl tracking-tight uppercase italic">Remont<span className="text-blue-500">AI</span></span>
+            <div className="flex flex-col">
+              <span className="font-black text-xl tracking-tight uppercase italic leading-none">7<span className="text-blue-500">svn</span></span>
+              <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">смета</span>
+            </div>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 hover:text-blue-400 transition-colors">
             <X size={20} />
@@ -497,6 +499,20 @@ const App: React.FC = () => {
                         syncToCloud(updated);
                       }}
                     />
+                    
+                    {/* Блок итогов специально для печати / PDF */}
+                    <div className="print-only mt-12 border-t-2 border-slate-900 pt-10">
+                      <div className="mb-10 page-break-inside-avoid">
+                        <Visualizer items={currentProject.items} />
+                      </div>
+                      <div className="print-total-banner">
+                        <span className="text-[10pt] font-black uppercase text-slate-500 block mb-1">Итоговая стоимость всех работ по смете:</span>
+                        <span className="text-2xl font-black text-slate-900 tracking-tight">{totalAmount.toLocaleString()} ₽</span>
+                      </div>
+                      <div className="mt-10 text-[8pt] text-slate-400 font-medium italic text-center">
+                        Смета сформирована в 7svn. Данные носят информационный характер.
+                      </div>
+                    </div>
                   </div>
                   <aside className="xl:col-span-4 space-y-6 lg:space-y-8 no-print">
                     <Visualizer items={currentProject.items} />

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { supabase } from './supabase.ts';
+import { supabase } from '../lib/supabase.ts';
 import { Mail, Lock, Loader2, LayoutPanelTop, ArrowRight } from 'lucide-react';
 
 const Auth: React.FC = () => {
@@ -38,10 +38,13 @@ const Auth: React.FC = () => {
           <div className="inline-flex bg-blue-600 p-3 rounded-2xl shadow-xl shadow-blue-200 mb-6">
             <LayoutPanelTop size={32} className="text-white" />
           </div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter italic text-slate-900">
-            Remont<span className="text-blue-600">AI</span>
-          </h1>
-          <p className="text-slate-500 mt-2 font-medium">Ваш персональный менеджер сметы</p>
+          <div className="flex flex-col items-center">
+            <h1 className="text-4xl font-black uppercase tracking-tighter italic text-slate-900 leading-none">
+              7<span className="text-blue-600">svn</span>
+            </h1>
+            <span className="text-[12px] font-bold text-blue-600 uppercase tracking-[0.3em] mt-1 ml-1">смета</span>
+          </div>
+          <p className="text-slate-500 mt-4 font-medium">Ваш персональный менеджер сметы</p>
         </div>
 
         <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 border border-slate-100 p-8 lg:p-10">

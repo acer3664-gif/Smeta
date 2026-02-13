@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RemontCalc Pro - Смета ремонта</title>
+    <title>7svn - Смета ремонта</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -13,13 +13,17 @@
             background-color: #f8fafc;
         }
 
+        .print-only {
+            display: none !important;
+        }
+
         @media print {
             @page {
                 size: A4;
-                margin: 10mm;
+                margin: 15mm;
             }
 
-            /* Снимаем ограничения высоты и переполнения, чтобы печатались все страницы */
+            /* Снимаем ограничения высоты и переполнения */
             html, body, #root, .flex.h-screen {
                 height: auto !important;
                 overflow: visible !important;
@@ -41,6 +45,10 @@
                 display: none !important; 
             }
 
+            .print-only {
+                display: block !important;
+            }
+
             .max-w-6xl {
                 max-width: 100% !important;
                 width: 100% !important;
@@ -51,8 +59,9 @@
             .print-section-container {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-bottom: 20px !important;
+                margin-bottom: 30px !important;
                 border: 1px solid #e2e8f0 !important;
+                display: block !important;
             }
 
             table {
@@ -72,9 +81,19 @@
                 font-size: 10pt !important;
             }
 
-            /* Убираем тени и скругления, которые плохо печатаются */
+            /* Итоговая сумма в PDF */
+            .print-total-banner {
+                margin-top: 40px;
+                padding: 20px;
+                background-color: #f1f5f9 !important;
+                border-radius: 12px;
+                text-align: right;
+                border: 2px solid #0f172a !important;
+                -webkit-print-color-adjust: exact;
+            }
+
+            /* Убираем тени и скругления */
             .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
-                shadow: none !important;
                 box-shadow: none !important;
             }
 
@@ -84,16 +103,14 @@
                 appearance: none !important;
                 -webkit-appearance: none !important;
                 color: black !important;
+                font-size: 10pt !important;
             }
 
             .bg-slate-50, .bg-slate-100, .bg-slate-50\/80 {
                 background-color: #f8fafc !important;
+                -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-        }
-
-        .print-header, .print-footer {
-            display: none;
         }
     </style>
 <script type="importmap">
